@@ -1,5 +1,6 @@
 import io as StringIO
 import logging
+import time
 from collections import defaultdict
 from threading import Thread
 
@@ -53,7 +54,7 @@ class MAVBus:
 
         if msg.get_type() == "BAD_DATA":
             # Ignore bad data
-            self.logger.warning("Received bad data")
+            return
 
         system = msg.get_srcSystem()
         component = msg.get_srcComponent()
@@ -66,28 +67,7 @@ class MAVBus:
             # Get severity
             severity = msg.to_dict().get("severity")
 
-            message = f"[{vehicle_id}] {msg.to_dict().get('text')}"
-            if severity == mavutil.mavlink.MAV_SEVERITY_DEBUG:
-                self.logger.debug(message)
-            elif severity == mavutil.mavlink.MAV_SEVERITY_INFO:
-                self.logger.info(message)
-            elif severity in [
-                mavutil.mavlink.MAV_SEVERITY_NOTICE,
-                mavutil.mavlink.MAV_SEVERITY_WARNING,
-            ]:
-                self.logger.warning(message)
-            elif severity == mavutil.mavlink.MAV_SEVERITY_ERROR:
-                self.logger.error(message)
-            elif severity in [
-                mavutil.mavlink.MAV_SEVERITY_CRITICAL,
-                mavutil.mavlink.MAV_SEVERITY_ALERT,
-                mavutil.mavlink.MAV_SEVERITY_EMERGENCY,
-            ]:
-                self.logger.critical(message)
-
             # Store each status message in the list
-            import time
-
             self.vehicles[vehicle_id].status_messages.append(
                 {"timestamp": time.time(), "text": msg.to_dict().get("text"), "severity": severity}
             )
