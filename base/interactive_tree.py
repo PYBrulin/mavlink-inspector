@@ -90,6 +90,7 @@ class TreeView:
                 data_node = {"_expanded": data_expanded, "_children": {}}
 
                 for msg_type, msg_data in component.data.items():
+                    # Use stable key for expansion state lookup (without frequency info)
                     msg_expanded = (
                         self.data.get(vehicle_id, {})
                         .get("_children", {})
@@ -99,9 +100,27 @@ class TreeView:
                         .get("_expanded", False)
                     )
 
+                    # Get frequency information if available
+                    frequency_info = ""
+                    if hasattr(component, "message_stats") and msg_type in component.message_stats:
+                        stats = component.message_stats[msg_type]
+                        freq = stats["frequency"]
+                        count = stats["count"]
+                        if freq > 0:
+                            frequency_info = f" [{freq:.1f} Hz, {count} msgs]"
+                        else:
+                            frequency_info = f" [{count} msgs]"
+
                     # Handle both dict and simple string/value types
                     if isinstance(msg_data, dict):
                         msg_node = {"_expanded": msg_expanded, "_children": {}}
+                        # Add frequency as first child if available
+                        if frequency_info:
+                            msg_node["_children"]["_frequency"] = {
+                                "_value": frequency_info.strip("[] "),
+                                "_unit": "",
+                                "_expanded": False,
+                            }
                         # Add message fields as children
                         for field, value in msg_data.items():
                             # Format the value appropriately
@@ -111,6 +130,9 @@ class TreeView:
                                 display_value = str(value)
 
                             msg_node["_children"][field] = {"_value": display_value, "_unit": "", "_expanded": False}
+
+                        # Store with frequency info for display, but keep stable reference
+                        msg_node["_display_suffix"] = frequency_info
                         data_node["_children"][msg_type] = msg_node
                     else:
                         # msg_data is a simple value (string, int, float, etc.)
@@ -131,6 +153,8 @@ class TreeView:
                             line_key = f"{idx + 1:03}" if len(lines) > 1 else "000"
                             msg_node["_children"][line_key] = {"_value": line, "_unit": "", "_expanded": False}
 
+                        # Store with frequency info for display, but keep stable reference
+                        msg_node["_display_suffix"] = frequency_info
                         data_node["_children"][msg_type] = msg_node
 
                 if data_node["_children"]:
@@ -249,6 +273,10 @@ class TreeView:
 
             # Build display string
             display_str = f"{indent}{indicator}{item['key']}"
+
+            # Add display suffix if present (for frequency info)
+            if "_display_suffix" in item["data"]:
+                display_str += item["data"]["_display_suffix"]
 
             # Add value if present
             if "_value" in item["data"]:

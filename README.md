@@ -48,20 +48,24 @@ Vehicle ID (e.g., "1:1")
 ├── System ID: 1
 ├── Component ID: 1
 ├── Messages
-│   ├── HEARTBEAT (expandable - dict with fields)
+│   ├── HEARTBEAT [50.0 Hz, 1234 msgs] (expandable - dict with fields)
 │   │   ├── type: 0
 │   │   ├── autopilot: 3
 │   │   ├── base_mode: 81
 │   │   └── custom_mode: 0
-│   ├── SYS_STATUS (expandable - multi-line string)
+│   ├── ATTITUDE [100.0 Hz, 2468 msgs]
+│   │   ├── roll: 0.0234
+│   │   ├── pitch: -0.0156
+│   │   └── yaw: 1.5708
+│   ├── SYS_STATUS [1.0 Hz, 25 msgs] (expandable - multi-line string)
 │   │   ├── 001: MY MULTI-LINE STRING HERE
 │   │   ├── 002: CONTINUING ON LINE 2
 │   │   └── 003: AND LINE 3, ETC.
-│   ├── STATUS_TEXT (expandable - single value)
-│   │   └── 000: System ready
 │   └── ... (other message types)
 └── Parameters
     ├── PARAM1: 1.5
     ├── PARAM2: 2.0
     └── ... (other parameters)
 ```
+
+**Message Frequency Tracking**: Each message type displays its reception frequency (Hz) and total message count next to its name.
